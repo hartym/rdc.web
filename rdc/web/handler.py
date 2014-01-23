@@ -35,8 +35,9 @@ class RequestHandler(BaseRequestHandler):
             })
         return j
 
-    def render_response(self, _template, **context):
+    def render(self, _template, **context):
         """Renders a template and writes the result to the response."""
+        context['_request'] = self.request
         self.response.write(self.jinja2.render_template(_template, **context))
 
 def StaticFileHandler(base_path):

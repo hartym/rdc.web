@@ -1,0 +1,20 @@
+{% block xhr_stylesheets %}
+{% endblock %}
+
+<div class="row" style="margin: 0 1rem">
+  <div class="columns">
+    <h3>
+      {% block subtitle %}
+      {% endblock %}
+    </h3>
+
+    {% block body %}
+      {% block content %}
+      {% endblock %}
+    {% endblock %}
+  </div>
+</div>
+
+{% block xhr_javascripts %}
+  <script>$(document).foundation();</script>
+{% endblock %}

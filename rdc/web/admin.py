@@ -62,8 +62,15 @@ class ListView(View):
             return self.get_page().object_list
         return self.query.all()
 
+    def render(self, object, column):
+        renderer_name = 'render_{0}'.format(column)
+        if hasattr(self, renderer_name):
+            return getattr(self, renderer_name)(object)
+        return getattr(object, column)
+
     def __len__(self):
         return len(self.objects())
+
 
 class EditView(View):
     def __init__(self, *args, **kwargs):
@@ -74,9 +81,15 @@ class EditView(View):
 
         print self.session, self.id
 
+    def query_for_id(self, id):
+        return self.session.query(self.Model).filter(self.Model.id == id)
+
+    def find(self, id):
+        return self.query_for_id(id).one()
+
     @property
     def query(self):
-        return self.session.query(self.Model).filter(self.Model.id == self.id)
+        return self.query_for_id(self.id)
 
     @cached_property
     def object(self):
