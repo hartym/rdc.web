@@ -25,6 +25,10 @@ from rdc.web.paginator import Paginator
 class View(object):
     Model = None
     route_prefix = None
+    columns = ['__unicode__']
+    labels = {
+        '__unicode__': 'Object'
+    }
 
     def __init__(self, **kwargs):
         self.route_prefix = kwargs.get('route_prefix', None) or self.route_prefix
@@ -34,10 +38,29 @@ class View(object):
             return self.route_prefix
         return '.'.join((self.route_prefix, action, ))
 
+    def render(self, object, column):
+        renderer_name = 'render_{0}'.format(column)
+        if hasattr(self, renderer_name):
+            return getattr(self, renderer_name)(object)
+        v = getattr(object, column)
+        if callable(v):
+            return v()
+        return v
+
+    def get_columns(self):
+        return self.columns
+
+    def get_label_for(self, column):
+        return self.labels[column]
+
+def ModelView(model, route_prefix):
+    cls = type(model.__name__+'View', (View, ), {})
+    cls.Model = model
+    cls.route_prefix = route_prefix
+    return cls
 
 class ListView(View):
     Paginator = partial(Paginator, per_page=20)
-    columns = None
     actions = ['edit', 'delete']
 
     def __init__(self, *args, **kwargs):
@@ -61,12 +84,6 @@ class ListView(View):
         if self.paginator:
             return self.get_page().object_list
         return self.query.all()
-
-    def render(self, object, column):
-        renderer_name = 'render_{0}'.format(column)
-        if hasattr(self, renderer_name):
-            return getattr(self, renderer_name)(object)
-        return getattr(object, column)
 
     def __len__(self):
         return len(self.objects())

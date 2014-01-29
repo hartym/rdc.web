@@ -1,17 +1,19 @@
 {% macro render_paginator(page) %}
   {# Renders a paginator for a given page object. #}
-  <ul class="pagination right">
-    <li class="arrow{% if not page.has_previous() %} unavailable{% endif %}"><a
-            href="{% if page.has_previous() %}?page={{ page.previous_page_number() }}{% else %}#{% endif %}">&laquo;</a>
-    </li>
+  {% if page.paginator.num_pages > 1 %}
+    <ul class="pagination right">
+      <li class="arrow{% if not page.has_previous() %} unavailable{% endif %}"><a
+              href="{% if page.has_previous() %}?page={{ page.previous_page_number() }}{% else %}#{% endif %}">&laquo;</a>
+      </li>
 
-    {% for num in range(1, page.paginator.num_pages + 1) %}
-      <li {% if page.number == num %}class="current"{% endif %}><a href="?page={{ num }}">{{ num }}</a></li>
-    {% endfor %}
+      {% for num in range(1, page.paginator.num_pages + 1) %}
+        <li {% if page.number == num %}class="current"{% endif %}><a href="?page={{ num }}">{{ num }}</a></li>
+      {% endfor %}
 
-    <li class="arrow{% if not page.has_next() %} unavailable{% endif %}"><a
-            href="{% if page.has_next() %}?page={{ page.next_page_number() }}{% else %}#{% endif %}">&raquo;</a></li>
-  </ul>
+      <li class="arrow{% if not page.has_next() %} unavailable{% endif %}"><a
+              href="{% if page.has_next() %}?page={{ page.next_page_number() }}{% else %}#{% endif %}">&raquo;</a></li>
+    </ul>
+  {% endif %}
 {% endmacro %}
 
 {% macro render_list(view, with_actions=True, with_list_actions=True, with_paginator=True) %}
@@ -24,11 +26,12 @@
   <table width="100%">
     <thead>
     <tr>
-      {% for column in view.columns %}
-        <th>{{ column }}</th>
+      {% for column in view.get_columns() %}
+        <th>
+          {{ view.get_label_for(column) }}
+        </th>
       {% endfor %}
       {% if with_actions %}
-
         <th>Actions</th>
       {% endif %}
     </tr>
@@ -36,7 +39,7 @@
     <tbody>
     {% for object in view.objects() %}
       <tr>
-        {% for column in view.columns %}
+        {% for column in view.get_columns() %}
           <td>
             <a href="{{ uri_for(view.route_for('edit'), id=object.id) }}">
               {{ view.render(object, column) | safe }}
