@@ -51,7 +51,7 @@ class View(object):
         return self.columns
 
     def get_label_for(self, column):
-        return self.labels[column]
+        return self.labels[column] if column in self.labels else column.capitalize()
 
 def ModelView(model, route_prefix):
     cls = type(model.__name__+'View', (View, ), {})
