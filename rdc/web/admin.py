@@ -17,10 +17,9 @@
 from functools import partial
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.util import has_identity
-from webapp2 import cached_property, abort
+from webapp2 import cached_property, abort, RequestHandler as _RequestHandler
 from wtforms.ext.sqlalchemy.orm import model_form
 from rdc.web.paginator import Paginator
-
 
 class View(object):
     Model = None
@@ -88,7 +87,6 @@ class ListView(View):
     def __len__(self):
         return len(self.objects())
 
-
 class EditView(View):
     def __init__(self, *args, **kwargs):
         self.session = kwargs.pop('session')
@@ -112,7 +110,6 @@ class EditView(View):
     def object(self):
         if self.id:
             try:
-                print self.query
                 return self.query.one()
             except NoResultFound as e:
                 return abort(404)
@@ -131,6 +128,9 @@ class EditView(View):
         self.session.commit()
         return True
 
+    def post_commit(self):
+        pass
+
     def submit(self, request, **kwargs):
         self.form = self.Form(request.POST, self.object)
 
@@ -138,7 +138,19 @@ class EditView(View):
             if self.form.validate():
                 self.form.populate_obj(self.object)
                 if self.pre_commit():
-                    return self.commit()
+                    _retval = self.commit()
+                self.post_commit()
+                return _retval
 
     def object_exists(self):
         return has_identity(self.object)
+
+def AdminHandler(ListView, EditView, BaseView, RequestHandler=None):
+    RequestHandler = RequestHandler or _RequestHandler
+
+    cls = type(BaseView.Model.__name__+'AdminHandler', (RequestHandler, BaseView, ), {})
+    cls.ListView = ListView
+    cls.EditView = EditView
+
+    return cls
+
