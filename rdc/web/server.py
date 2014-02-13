@@ -1,5 +1,26 @@
 from rdc.dic import Container as BaseContainer
 
+class Server(object):
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+    def __call__(self, *args, **kwargs):
+        try:
+            from werkzeug.serving import run_simple
+        except ImportError as e:
+            raise ImportError(
+                'You must install werkzeug to use the embedded development webserver (try "pip install werkzeug").'
+            )
+
+        a = list(self.args) + list(args)
+        k = self.kwargs
+        k.update(kwargs)
+
+        print a, k
+
+        return run_simple(*a, **k)
+
 class Container(BaseContainer):
     @staticmethod
     def configure(self, *args, **kwargs):
@@ -20,17 +41,4 @@ class Container(BaseContainer):
         #
         # Embedded development web server
         #
-        @self.definition(prefix, **server_kwargs)
-        def server(**kwargs):
-            try:
-                from werkzeug.serving import run_simple
-            except ImportError as e:
-                raise ImportError(
-                    'You must install werkzeug to use the embedded development webserver (try "pip install werkzeug").'
-                )
-
-            def server(*lastminute_args, **lastminute_kwargs):
-                kwargs.update(lastminute_kwargs)
-                return run_simple(**kwargs)
-
-            return server
+        server = self.definition(prefix, **server_kwargs)(Server)

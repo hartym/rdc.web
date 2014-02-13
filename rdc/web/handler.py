@@ -42,11 +42,12 @@ class RequestHandler(BaseRequestHandler):
 
 def StaticFileHandler(base_path):
     def handler(request, *args, **kwargs):
-        abs_path = os.path.join(base_path, kwargs.get('path'))
-        if os.path.isdir(abs_path) or abs_path.find(os.getcwd()) != 0:
+        _base = os.path.realpath(base_path)
+        _path = os.path.realpath(os.path.join(_base, kwargs.get('path')))
+        if os.path.isdir(_path) or (_path.find(_base) != 0):
             return abort(403)
         try:
-            file = FileApp(abs_path)
+            file = FileApp(_path)
             return file.__call__.func(request)
         except:
             return abort(404)
