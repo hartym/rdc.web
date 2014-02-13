@@ -13,11 +13,9 @@ class Server(object):
                 'You must install werkzeug to use the embedded development webserver (try "pip install werkzeug").'
             )
 
-        a = list(self.args) + list(args)
+        a = self.args + args
         k = self.kwargs
         k.update(kwargs)
-
-        print a, k
 
         return run_simple(*a, **k)
 
