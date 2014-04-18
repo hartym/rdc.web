@@ -1,3 +1,4 @@
 webob
 webapp2
+jinja2
 wtforms
