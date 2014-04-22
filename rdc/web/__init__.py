@@ -9,8 +9,15 @@ from webapp2 import WSGIApplication
 class Application(WSGIApplication):
     def __init__(self, container, routes=None, debug=False, config=None):
         super(Application, self).__init__(routes, debug, config)
+
+        # Access to service container
         self.container = container
+
+        # BC
         self.get_service = container.get
+
+    def get(self, name):
+        return self.container.get(name)
 
     def _internal_error(self, exception):
         if self.debug:
